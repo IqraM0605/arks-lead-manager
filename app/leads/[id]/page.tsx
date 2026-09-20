@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { leads } from "@/lib/leads";
+import { supabase } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 export default async function LeadDetailPage({
     params,
@@ -7,7 +9,12 @@ export default async function LeadDetailPage({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
-    const lead = leads.find((l) => l.id === Number(id));
+
+    const { data: lead } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("id", Number(id))
+        .maybeSingle();
 
     if (!lead) {
         return (
