@@ -1,11 +1,5 @@
 import Link from "next/link";
-
-const leads = [
-    { id: 1, name: "Rahul Sharma", need: "Website for bakery", stage: "New" },
-    { id: 2, name: "Priya Patel", need: "Mobile app", stage: "Contacted" },
-    { id: 3, name: "Amit Verma", need: "AI chatbot", stage: "Meeting booked" },
-    { id: 4, name: "Sneha Rao", need: "Online store", stage: "Won" },
-];
+import { leads } from "@/lib/leads";
 
 export default async function LeadDetailPage({
     params,
