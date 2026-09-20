@@ -1,11 +1,33 @@
 import { NextResponse } from "next/server";
-import { leads } from "@/lib/leads";
+import { createClient } from "@/lib/supabase-server";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-    return NextResponse.json(leads);
+    const supabase = await createClient();
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+        return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+    }
+
+    const { data, error } = await supabase.from("leads").select("*").order("id");
+
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
 }
 
 export async function POST(request: Request) {
+    const supabase = await createClient();
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+        return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+    }
+
     let body: { name?: unknown; need?: unknown } | null;
 
     try {
@@ -24,13 +46,15 @@ export async function POST(request: Request) {
         );
     }
 
-    const newLead = {
-        id: leads.length + 1,
-        name,
-        need,
-        stage: "New",
-    };
-    leads.push(newLead);
+    const { data, error } = await supabase
+        .from("leads")
+        .insert({ name, need })
+        .select()
+        .single();
 
-    return NextResponse.json(newLead, { status: 201 });
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data, { status: 201 });
 }
