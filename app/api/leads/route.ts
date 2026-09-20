@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+    const supabase = await createClient();
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+        return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+    }
+
     const { data, error } = await supabase.from("leads").select("*").order("id");
 
     if (error) {
@@ -14,6 +21,13 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const supabase = await createClient();
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+        return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+    }
+
     let body: { name?: unknown; need?: unknown } | null;
 
     try {

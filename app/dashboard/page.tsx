@@ -1,9 +1,17 @@
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+    const supabase = await createClient();
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+        redirect("/login");
+    }
+
     const { data, error } = await supabase.from("leads").select("*").order("id");
 
     if (error) {
