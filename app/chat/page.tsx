@@ -9,6 +9,7 @@ export default function ChatPage() {
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [leadSaved, setLeadSaved] = useState(false);
 
     async function handleSend(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -25,7 +26,7 @@ export default function ChatPage() {
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: next }),
+                body: JSON.stringify({ messages: next, leadSaved }),
             });
             const data = await res.json();
 
@@ -33,6 +34,7 @@ export default function ChatPage() {
                 setError(data.error ?? "Something went wrong.");
             } else {
                 setMessages([...next, { role: "assistant", content: data.reply }]);
+                if (data.leadSaved) setLeadSaved(true);
             }
         } catch {
             setError("Could not reach the server.");
@@ -45,6 +47,11 @@ export default function ChatPage() {
         <main>
             <h1>Chat with us</h1>
             <p>Hi! Thanks for reaching out. How can we help you today?</p>
+            <p>
+                <small>
+                    If you share your contact details, our team may use them to follow up with you.
+                </small>
+            </p>
 
             <ul>
                 {messages.map((m, i) => (
