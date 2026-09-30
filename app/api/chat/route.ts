@@ -18,7 +18,7 @@ COMPANY INFORMATION:
 ${COMPANY_INFO}`;
 
 const SAVED_NOTE =
-    "\n\nThe customer's details are already saved. Do not ask for their details again. Just answer questions.";
+    "\n\nThe chat interface indicates lead capture may be complete. This client-provided indication is not proof of a successful save. Do not claim the lead was saved unless a successful save confirmation appears in the conversation. Do not ask for details again; just answer questions.";
 
 const saveLeadDeclaration = {
     name: "save_lead",
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
         );
     }
 
-    const leadSaved = body?.leadSaved === true;
+    const leadSavedHint = body?.leadSaved === true;
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -114,8 +114,8 @@ export async function POST(request: Request) {
                 parts: [{ text: m.content }],
             })),
             config: {
-                systemInstruction: leadSaved ? SYSTEM_PROMPT + SAVED_NOTE : SYSTEM_PROMPT,
-                tools: leadSaved ? undefined : [{ functionDeclarations: [saveLeadDeclaration] }],
+                systemInstruction: leadSavedHint ? SYSTEM_PROMPT + SAVED_NOTE : SYSTEM_PROMPT,
+                tools: leadSavedHint ? undefined : [{ functionDeclarations: [saveLeadDeclaration] }],
             },
         });
 

@@ -3,6 +3,9 @@ import { createClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
+const MAX_NAME_LENGTH = 100;
+const MAX_NEED_LENGTH = 300;
+
 export async function GET() {
     const supabase = await createClient();
 
@@ -14,7 +17,8 @@ export async function GET() {
     const { data, error } = await supabase.from("leads").select("*").order("id");
 
     if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("Failed to fetch leads:", error);
+        return NextResponse.json({ error: "Could not load leads" }, { status: 500 });
     }
 
     return NextResponse.json(data);
@@ -46,6 +50,13 @@ export async function POST(request: Request) {
         );
     }
 
+    if (name.length > MAX_NAME_LENGTH || need.length > MAX_NEED_LENGTH) {
+        return NextResponse.json(
+            { error: "name must be 100 characters or fewer and need must be 300 characters or fewer" },
+            { status: 400 }
+        );
+    }
+
     const { data, error } = await supabase
         .from("leads")
         .insert({ name, need })
@@ -53,7 +64,8 @@ export async function POST(request: Request) {
         .single();
 
     if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("Failed to create lead:", error);
+        return NextResponse.json({ error: "Could not create lead" }, { status: 500 });
     }
 
     return NextResponse.json(data, { status: 201 });
