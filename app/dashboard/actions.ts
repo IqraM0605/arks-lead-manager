@@ -12,20 +12,34 @@ export async function createLead(formData: FormData) {
         redirect("/login");
     }
 
-    const name = String(formData.get("name") ?? "").trim();
-    const need = String(formData.get("need") ?? "").trim();
+    const nameValue = formData.get("name");
+    const needValue = formData.get("need");
 
-    if (!name || !need) {
-        return;
+    if (typeof nameValue !== "string" || typeof needValue !== "string") {
+        throw new Error("Name and need must be text.");
     }
 
-    await supabase.from("leads").insert({ name, need });
+    const name = nameValue.trim();
+    const need = needValue.trim();
+
+    if (!name || name.length > 100 || !need || need.length > 300) {
+        throw new Error("Name and need are required. Name must be 100 characters or fewer, and need must be 300 characters or fewer.");
+    }
+
+    const { error } = await supabase.from("leads").insert({ name, need });
+    if (error) {
+        throw new Error("Could not add the lead. Please try again.");
+    }
 
     revalidatePath("/dashboard");
 }
 
 export async function signOut() {
     const supabase = await createClient();
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        throw new Error("Could not sign out. Please try again.");
+    }
+
     redirect("/login");
 }
